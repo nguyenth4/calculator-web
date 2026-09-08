@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { CalcIcon, MaterialIcon, PrinterIcon } from "../common/Icons";
+import { CalcIcon, MaterialIcon, PrinterIcon, SettingsIcon } from "../common/Icons";
 
 const tabs = [
   { to: "/", label: "Tính giá", Icon: CalcIcon },
   { to: "/materials", label: "Nhựa", Icon: MaterialIcon },
   { to: "/printers", label: "Máy in", Icon: PrinterIcon },
+  { to: "/settings", label: "Cài đặt", Icon: SettingsIcon },
 ];
 
 export function NavTabs() {

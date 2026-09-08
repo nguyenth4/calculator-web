@@ -4,6 +4,7 @@ import { NavTabs } from "./components/layout/NavTabs";
 import { CalculatorPage } from "./pages/CalculatorPage";
 import { MaterialsPage } from "./pages/MaterialsPage";
 import { PrintersPage } from "./pages/PrintersPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { DataProvider } from "./context/DataContext";
 import { ToastProvider } from "./context/ToastContext";
 
@@ -18,6 +19,7 @@ function App() {
             <Route path="/" element={<CalculatorPage />} />
             <Route path="/materials" element={<MaterialsPage />} />
             <Route path="/printers" element={<PrintersPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>
       </ToastProvider>

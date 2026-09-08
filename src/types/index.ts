@@ -21,5 +21,18 @@ export interface Printer {
   createdAt: string;
 }
 
+export type ProfitMethod = "markup" | "margin";
+
+export interface CalculatorSettings {
+  defaultPrinterId: string;
+  electricityPricePerKwh: number;
+  technicalRatePerHour: number;
+  monthlySalesQuantity: number;
+  riskPercent: number;
+  profitMethod: ProfitMethod;
+  profitPercent: number;
+  advancedCostsEnabled: boolean;
+}
+
 export type PlasticInput = Omit<Plastic, "id" | "createdAt">;
 export type PrinterInput = Omit<Printer, "id" | "createdAt">;

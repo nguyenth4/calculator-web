@@ -3,6 +3,7 @@ import type { Printer, PrinterInput } from "../../types";
 import { initialPrinters } from "../../data/sampleData";
 import { parseNumberInput } from "../../utils/currency";
 import { requireText, requirePositiveNumber, hasErrors } from "../../utils/validation";
+import { FormattedNumberInput } from "../common/FormattedNumberInput";
 
 const EMPTY_FORM = {
   name: "",
@@ -112,13 +113,9 @@ export function PrinterForm({ editing, onSubmit, onCancel }: PrinterFormProps) {
       <div className="field-row">
         <label className="field">
           <span>Công suất (kW)</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="any"
+          <FormattedNumberInput
             value={form.powerKw}
-            onChange={(e) => set("powerKw", e.target.value)}
+            onChange={(value) => set("powerKw", value)}
             placeholder="0.095"
             className={`input-field ${submitted && errors.powerKw ? "input-error" : ""}`}
           />
@@ -132,13 +129,9 @@ export function PrinterForm({ editing, onSubmit, onCancel }: PrinterFormProps) {
 
         <label className="field">
           <span>Tuổi thọ dự kiến (giờ)</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="any"
+          <FormattedNumberInput
             value={form.lifetimeHours}
-            onChange={(e) => set("lifetimeHours", e.target.value)}
+            onChange={(value) => set("lifetimeHours", value)}
             placeholder="4000"
             className={`input-field ${submitted && errors.lifetimeHours ? "input-error" : ""}`}
           />
@@ -150,13 +143,9 @@ export function PrinterForm({ editing, onSubmit, onCancel }: PrinterFormProps) {
 
         <label className="field">
           <span>Giá mua máy (đ)</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="any"
+          <FormattedNumberInput
             value={form.purchasePrice}
-            onChange={(e) => set("purchasePrice", e.target.value)}
+            onChange={(value) => set("purchasePrice", value)}
             placeholder="Nhập giá bạn đã mua"
             className={`input-field ${submitted && errors.purchasePrice ? "input-error" : ""}`}
           />

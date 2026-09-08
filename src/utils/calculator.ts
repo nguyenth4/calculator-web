@@ -1,15 +1,14 @@
 /** Pure pricing calculation logic — kept independent from any UI code. */
 
-import { roundUpTo500 } from "./currency";
+import { roundToNearest500, roundUpTo500 } from "./currency";
+import type { ProfitMethod } from "../types";
 
 export interface CalculatorInput {
-  /** Giá nhựa, đ/kg */
-  pricePerKg: number;
-  /** Khối lượng nhựa sử dụng, gram / 1 sản phẩm */
-  weightGram: number;
+  /** Chi phí của từng loại nhựa cho cả lô in, đ */
+  plasticCosts: number[];
   /** Công suất máy in, kW */
   powerKw: number;
-  /** Thời gian in, giờ / 1 sản phẩm */
+  /** Thời gian in cho cả lô, giờ */
   printHours: number;
   /** Giá điện, đ/kWh */
   electricityPricePerKwh: number;
@@ -17,7 +16,7 @@ export interface CalculatorInput {
   purchasePrice: number;
   /** Tuổi thọ máy in, giờ */
   lifetimeHours: number;
-  /** Thời gian xử lý kỹ thuật (thiết kế, setup, hoàn thiện...), giờ / 1 sản phẩm */
+  /** Thời gian xử lý kỹ thuật (thiết kế, setup, hoàn thiện...) cho cả lô, giờ */
   technicalHours: number;
   /** Đơn giá công xử lý kỹ thuật, đ/giờ */
   technicalRatePerHour: number;
@@ -29,6 +28,8 @@ export interface CalculatorInput {
   riskPercent: number;
   /** Biên lợi nhuận mong muốn, % (tuỳ chọn) */
   marginPercent?: number;
+  /** Markup tính trên giá vốn, margin tính trên giá bán */
+  profitMethod?: ProfitMethod;
 }
 
 export interface CalculatorResult {
@@ -44,6 +45,8 @@ export interface CalculatorResult {
   otherCostPerUnit: number;
   /** Dự phòng in hỏng / sản phẩm */
   riskCost: number;
+  /** Tỷ lệ dự phòng in hỏng đã áp dụng, % */
+  riskPercent: number;
   /** Giá vốn / sản phẩm trước khi làm tròn */
   subtotalCost: number;
   /** Giá vốn / sản phẩm, đã làm tròn lên bội số 500đ */
@@ -59,16 +62,15 @@ export interface CalculatorResult {
 }
 
 /**
- * Tính toán chi phí in 3D cho 1 sản phẩm (và cả lô), theo mô hình:
+ * Tính toán chi phí in 3D theo lô, rồi phân bổ về một sản phẩm, theo mô hình:
  *
- * Chi phí nhựa        = Khối lượng (g) x Giá nhựa (đ/kg) / 1000
- * Chi phí điện        = Công suất (kW) x Thời gian in (giờ) x Giá điện (đ/kWh)
- * Khấu hao máy        = (Giá mua máy / Tuổi thọ máy theo giờ) x Thời gian in (giờ)
- * Tiền công kỹ thuật  = Thời gian xử lý kỹ thuật (giờ) x Đơn giá công (đ/giờ)
- * Chi phí khác/SP     = Chi phí khác cả lô / Số lượng
- * Giá vốn trước DP    = Nhựa + Điện + Khấu hao + Công kỹ thuật + Chi phí khác/SP
- * Dự phòng in hỏng    = Giá vốn trước DP x % dự phòng
- * Giá vốn/sản phẩm    = làm tròn lên 500đ của (Giá vốn trước DP + Dự phòng in hỏng)
+ * Chi phí nhựa lô     = tổng(Khối lượng (g) x Giá nhựa (đ/kg) / 1000)
+ * Chi phí điện lô     = làm tròn lên 500đ của (Công suất x Thời gian in x Giá điện)
+ * Khấu hao máy lô     = làm tròn gần nhất đến 500đ của ((Giá mua máy / Tuổi thọ) x Thời gian in)
+ * Tiền công kỹ thuật  = Thời gian xử lý kỹ thuật lô (giờ) x Đơn giá công (đ/giờ)
+ * Giá vốn trước DP lô = Nhựa + Điện + Khấu hao + Công kỹ thuật + Chi phí khác lô
+ * Dự phòng in hỏng lô = làm tròn gần nhất đến 500đ của (Giá vốn trước DP lô x % dự phòng)
+ * Giá vốn/sản phẩm    = làm tròn lên 500đ của ((Giá vốn lô + Dự phòng lô) / Số lượng)
  * Giá bán đề xuất     = làm tròn lên 500đ của (Giá vốn/sản phẩm x (1 + % biên lợi nhuận))
  */
 export function calculatePrintCost(input: CalculatorInput): CalculatorResult {
@@ -77,25 +79,36 @@ export function calculatePrintCost(input: CalculatorInput): CalculatorResult {
 
   const quantity = safe(input.quantity) || 1;
 
-  const plasticCost = (safe(input.weightGram) * safe(input.pricePerKg)) / 1000;
-  const electricityCost =
-    safe(input.powerKw) * safe(input.printHours) * safeNonNeg(input.electricityPricePerKwh);
-  const depreciationCost = safe(input.lifetimeHours) > 0
-    ? (safeNonNeg(input.purchasePrice) / input.lifetimeHours) * safe(input.printHours)
+  const plasticCostBatch = input.plasticCosts.reduce((total, cost) => total + safe(cost), 0);
+  const electricityCostBatch = roundUpTo500(
+    safe(input.powerKw) * safe(input.printHours) * safeNonNeg(input.electricityPricePerKwh),
+  );
+  const depreciationCostBatch = safe(input.lifetimeHours) > 0
+    ? roundToNearest500((safeNonNeg(input.purchasePrice) / input.lifetimeHours) * safe(input.printHours))
     : 0;
-  const laborCost = safeNonNeg(input.technicalHours) * safeNonNeg(input.technicalRatePerHour);
-  const otherCostPerUnit = safeNonNeg(input.otherCost) / quantity;
+  const laborCostBatch = safeNonNeg(input.technicalHours) * safeNonNeg(input.technicalRatePerHour);
+  const otherCostBatch = safeNonNeg(input.otherCost);
 
-  const subtotalCost = plasticCost + electricityCost + depreciationCost + laborCost + otherCostPerUnit;
+  const subtotalBatchCost = plasticCostBatch + electricityCostBatch + depreciationCostBatch + laborCostBatch + otherCostBatch;
+  const riskPercent = safeNonNeg(input.riskPercent);
+  const riskBatchCost = roundToNearest500(subtotalBatchCost * (riskPercent / 100));
+  const totalCostPerUnit = roundUpTo500((subtotalBatchCost + riskBatchCost) / quantity);
 
-  const riskCost = subtotalCost * (safeNonNeg(input.riskPercent) / 100);
+  const plasticCost = plasticCostBatch / quantity;
+  const electricityCost = electricityCostBatch / quantity;
+  const depreciationCost = depreciationCostBatch / quantity;
+  const laborCost = laborCostBatch / quantity;
+  const otherCostPerUnit = otherCostBatch / quantity;
+  const subtotalCost = subtotalBatchCost / quantity;
+  const riskCost = riskBatchCost / quantity;
 
-  const totalCostPerUnit = roundUpTo500(subtotalCost + riskCost);
-
-  const suggestedPrice =
-    input.marginPercent !== undefined && input.marginPercent !== null && input.marginPercent > 0
-      ? roundUpTo500(totalCostPerUnit * (1 + input.marginPercent / 100))
-      : null;
+  const profitPercent = safeNonNeg(input.marginPercent ?? 0);
+  const priceMultiplier = input.profitMethod === "margin" && profitPercent < 100
+    ? 1 / (1 - profitPercent / 100)
+    : 1 + profitPercent / 100;
+  const suggestedPrice = profitPercent > 0
+    ? roundUpTo500(totalCostPerUnit * priceMultiplier)
+    : null;
 
   const batchCost = totalCostPerUnit * quantity;
   const batchPrice = suggestedPrice !== null ? suggestedPrice * quantity : null;
@@ -107,6 +120,7 @@ export function calculatePrintCost(input: CalculatorInput): CalculatorResult {
     laborCost,
     otherCostPerUnit,
     riskCost,
+    riskPercent,
     subtotalCost,
     totalCostPerUnit,
     suggestedPrice,

@@ -1,9 +1,27 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { initialPlastics, initialPrinters } from "../data/sampleData";
-import type { Plastic, PlasticInput, Printer, PrinterInput } from "../types";
+import type {
+  CalculatorSettings,
+  Plastic,
+  PlasticInput,
+  Printer,
+  PrinterInput,
+} from "../types";
 
 const STORAGE_KEY_PLASTICS = "p3d.plastics";
 const STORAGE_KEY_PRINTERS = "p3d.printers";
+const STORAGE_KEY_SETTINGS = "p3d.calculator-settings";
+
+const DEFAULT_SETTINGS: CalculatorSettings = {
+  defaultPrinterId: "printer-a1",
+  electricityPricePerKwh: 4000,
+  technicalRatePerHour: 10000,
+  monthlySalesQuantity: 200,
+  riskPercent: 15,
+  profitMethod: "markup",
+  profitPercent: 50,
+  advancedCostsEnabled: false,
+};
 
 function loadFromStorage<T>(key: string, fallback: T): T {
   try {
@@ -51,12 +69,14 @@ function today(): string {
 interface DataContextValue {
   plastics: Plastic[];
   printers: Printer[];
+  settings: CalculatorSettings;
   addPlastic: (input: PlasticInput) => Plastic;
   updatePlastic: (id: string, input: PlasticInput) => void;
   removePlastic: (id: string) => void;
   addPrinter: (input: PrinterInput) => Printer;
   updatePrinter: (id: string, input: PrinterInput) => void;
   removePrinter: (id: string) => void;
+  updateSettings: (settings: CalculatorSettings) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -66,6 +86,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     loadFromStorage(STORAGE_KEY_PLASTICS, initialPlastics),
   );
   const [printers, setPrinters] = useState<Printer[]>(loadPrinters);
+  const [settings, setSettings] = useState<CalculatorSettings>(() =>
+    loadFromStorage(STORAGE_KEY_SETTINGS, DEFAULT_SETTINGS),
+  );
 
   const persistPlastics = (next: Plastic[]) => {
     setPlastics(next);
@@ -105,15 +128,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     persistPrinters(printers.filter((p) => p.id !== id));
   };
 
+  const updateSettings = (next: CalculatorSettings) => {
+    setSettings(next);
+    saveToStorage(STORAGE_KEY_SETTINGS, next);
+  };
+
   const value: DataContextValue = {
     plastics,
     printers,
+    settings,
     addPlastic,
     updatePlastic,
     removePlastic,
     addPrinter,
     updatePrinter,
     removePrinter,
+    updateSettings,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

@@ -2,28 +2,6 @@ import type { Plastic, Printer } from "../types";
 
 export const initialPlastics: Plastic[] = [
   {
-    id: "pla-01",
-    name: "PLA Basic",
-    type: "PLA",
-    pricePerKg: 350000,
-    color: "#f97316",
-    manufacturer: "eSUN",
-    description: "Nhựa PLA phổ thông, dễ in, ít mùi, phù hợp mô hình trang trí.",
-    status: "active",
-    createdAt: "2025-01-10",
-  },
-  {
-    id: "petg-01",
-    name: "PETG Tough",
-    type: "PETG",
-    pricePerKg: 400000,
-    color: "#0ea5e9",
-    manufacturer: "Polymaker",
-    description: "Độ bền cao, chịu va đập tốt, phù hợp chi tiết cơ khí.",
-    status: "active",
-    createdAt: "2025-01-14",
-  },
-  {
     id: "abs-01",
     name: "ABS Pro",
     type: "ABS",
@@ -44,17 +22,6 @@ export const initialPlastics: Plastic[] = [
     description: "Nhựa dẻo, đàn hồi tốt, dùng cho case điện thoại, đế giày.",
     status: "active",
     createdAt: "2025-02-20",
-  },
-  {
-    id: "pla-02",
-    name: "PLA Silk Vàng",
-    type: "PLA",
-    pricePerKg: 380000,
-    color: "#eab308",
-    manufacturer: "Polymaker",
-    description: "Bề mặt bóng như lụa, lên màu đẹp cho mô hình trưng bày.",
-    status: "inactive",
-    createdAt: "2025-03-05",
   },
 ];
 
