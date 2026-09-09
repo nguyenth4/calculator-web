@@ -160,7 +160,7 @@ export function Calculator({
 
         <div className="field-row calculator-print-settings">
           <label className="field">
-            <span>Thời gian in cả lô/khay</span>
+            <span>Thời gian in</span>
             <TimeInputs
               hours={value.hours}
               minutes={value.minutes}
@@ -176,7 +176,7 @@ export function Calculator({
             {shouldShowError("minutes") && errors.minutes && <small className="field-error">{errors.minutes}</small>}
           </label>
           <label className="field">
-            <span>Thời gian xử lý kỹ thuật cả lô/khay <InfoHint text="Tổng thời gian thiết kế, setup và hoàn thiện cho cả khay." /></span>
+            <span>Thời gian xử lý kỹ thuật <InfoHint text="Tổng thời gian thiết kế, setup và hoàn thiện cho cả khay." /></span>
             <TimeInputs
               hours={value.technicalHours}
               minutes={value.technicalMinutes}

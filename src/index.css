@@ -3,17 +3,17 @@
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
 
-  --color-bg: #eef3fa;
+  --color-bg: #eff6ff;
   --color-surface: #ffffff;
-  --color-surface-2: #f4f7fb;
-  --color-surface-3: #e9eef6;
+  --color-surface-2: #eff6ff;
+  --color-surface-3: #dbeafe;
 
-  --color-line: #dfe7f1;
-  --color-line-hover: #c3d2e6;
+  --color-line: #bfdbfe;
+  --color-line-hover: #93c5fd;
 
-  --color-text: #0f1b2d;
-  --color-text-secondary: #52627a;
-  --color-text-muted: #96a5ba;
+  --color-text: #172554;
+  --color-text-secondary: #1e3a8a;
+  --color-text-muted: #64748b;
 
   --color-accent: #2563eb;
   --color-accent-hover: #1d4ed8;
@@ -21,16 +21,16 @@
   --color-accent-contrast: #ffffff;
   --color-accent-muted: #e7f0ff;
 
-  --color-gold: #38bdf8;
+  --color-gold: #60a5fa;
 
-  --color-ok: #16a34a;
-  --color-ok-muted: #e9f8ee;
+  --color-ok: #2563eb;
+  --color-ok-muted: #dbeafe;
 
-  --color-danger: #dc2626;
-  --color-danger-muted: #fdecec;
+  --color-danger: #1d4ed8;
+  --color-danger-muted: #dbeafe;
 
-  --color-warn: #d97706;
-  --color-warn-muted: #fef3e2;
+  --color-warn: #2563eb;
+  --color-warn-muted: #dbeafe;
 }
 
 :root {
@@ -155,12 +155,12 @@ input[type="number"]::-webkit-inner-spin-button {
   .btn-danger {
     background: var(--color-danger);
     border-color: var(--color-danger);
-    color: #fff;
+    color: #ffffff;
     font-weight: 600;
   }
   .btn-danger:hover {
-    background: #b91c1c;
-    border-color: #b91c1c;
+    background: #1e40af;
+    border-color: #1e40af;
   }
 
   .btn-page {
@@ -195,7 +195,7 @@ input[type="number"]::-webkit-inner-spin-button {
     border: 1px solid #9fc5ff;
     border-radius: 8px;
     padding: 0.55rem 0.7rem;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 2px rgba(15, 27, 45, 0.04);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 2px rgba(30, 64, 175, 0.06);
     transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
   }
   .input-field:hover {
@@ -256,7 +256,7 @@ input[type="number"]::-webkit-inner-spin-button {
     background: var(--color-surface);
     border: 1px solid var(--color-line);
     border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(15, 27, 45, 0.05), 0 1px 3px rgba(15, 27, 45, 0.04);
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.08), 0 1px 3px rgba(30, 64, 175, 0.05);
   }
 
   .block {
@@ -264,7 +264,7 @@ input[type="number"]::-webkit-inner-spin-button {
     border: 1px solid var(--color-line);
     border-radius: 12px;
     padding: 1rem;
-    box-shadow: 0 1px 2px rgba(15, 27, 45, 0.05), 0 1px 3px rgba(15, 27, 45, 0.04);
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.08), 0 1px 3px rgba(30, 64, 175, 0.05);
   }
 
   .material-block {
@@ -347,6 +347,9 @@ input[type="number"]::-webkit-inner-spin-button {
   }
   .calculator-print-settings {
     align-items: start;
+  }
+  .calculator-print-settings .field > span {
+    min-height: 1.45rem;
   }
   .time-inputs {
     display: grid;
@@ -521,7 +524,7 @@ input[type="number"]::-webkit-inner-spin-button {
     background: linear-gradient(135deg, #ffffff 0%, #eef4ff 55%, #e3edff 100%);
     border: 1px solid var(--color-line);
     border-radius: 14px;
-    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.1), 0 1px 2px rgba(15, 27, 45, 0.05);
+    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.14), 0 1px 2px rgba(30, 64, 175, 0.06);
   }
   .result-inner {
     padding: 1.25rem;
@@ -620,7 +623,7 @@ input[type="number"]::-webkit-inner-spin-button {
     border: 1px solid var(--color-line);
     border-radius: 0.35rem;
     background: var(--color-surface);
-    box-shadow: 0 0.5rem 1rem rgb(50 35 15 / 14%);
+    box-shadow: 0 0.5rem 1rem rgb(30 64 175 / 14%);
     color: var(--color-text);
     content: attr(data-tooltip);
     font-size: 0.72rem;
@@ -755,7 +758,7 @@ input[type="number"]::-webkit-inner-spin-button {
     border: 1px solid var(--color-line);
     border-radius: 12px;
     padding: 0.9rem 1rem;
-    box-shadow: 0 1px 2px rgba(15, 27, 45, 0.05);
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.08);
     transition: border-color 150ms ease;
   }
   .item-card:hover {
@@ -768,7 +771,7 @@ input[type="number"]::-webkit-inner-spin-button {
     border: 1px solid var(--color-line);
     border-radius: 12px;
     background: var(--color-surface);
-    box-shadow: 0 1px 2px rgba(15, 27, 45, 0.05);
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.08);
   }
   .data-table {
     width: 100%;
@@ -892,7 +895,6 @@ input[type="number"]::-webkit-inner-spin-button {
     border: 1px solid var(--color-line-hover);
     flex: none;
   }
-
   /* --- Calculator: compact, estimate-focused layout ------------------------ */
   .calculator-page {
     width: 100%;
@@ -902,13 +904,13 @@ input[type="number"]::-webkit-inner-spin-button {
   }
   .calculator-page .block,
   .calculator-page .result-card {
-    border-color: #eadfce;
+    border-color: var(--color-line);
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(98, 67, 31, 0.08);
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.08);
   }
   .calculator-page .block {
     padding: 1rem;
-    background: #fffdf9;
+    background: var(--color-surface);
   }
   .calculator-page .material-block {
     width: 100%;
@@ -917,12 +919,12 @@ input[type="number"]::-webkit-inner-spin-button {
     margin-bottom: 0.5rem;
   }
   .calculator-page .section-label {
-    color: #c66711;
+    color: var(--color-accent);
     font-size: 0.78rem;
     margin-bottom: 0.6rem;
   }
   .calculator-page .input-field {
-    border-color: #dfcdb8;
+    border-color: var(--color-line-hover);
     border-radius: 5px;
     box-shadow: none;
     min-height: 2.65rem;
@@ -930,8 +932,8 @@ input[type="number"]::-webkit-inner-spin-button {
     font-size: 0.9rem;
   }
   .calculator-page .input-field:focus {
-    border-color: #c66711;
-    box-shadow: 0 0 0 3px #fff0dd;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-muted);
   }
   .calculator-page .field > span,
   .calculator-page .field-label {
@@ -944,23 +946,23 @@ input[type="number"]::-webkit-inner-spin-button {
     flex-basis: 12rem;
   }
   .calculator-page .result-card {
-    background: #fffdf9;
+    background: var(--color-surface);
   }
   .calculator-page .result-inner {
     padding: 0.85rem;
   }
   .calculator-page .price-big {
-    color: #c66711;
+    color: var(--color-accent);
     font-size: 1.8rem;
     background: none;
     -webkit-text-fill-color: currentColor;
   }
   .calculator-page .price-second strong,
   .calculator-page .total-row .text-ok {
-    color: #9a4b0a;
+    color: var(--color-accent-hover);
   }
   .calculator-page .bar > i {
-    background: #e58922;
+    background: var(--color-accent);
   }
   @media (min-width: 768px) {
     .calculator-page .layout {

@@ -240,7 +240,7 @@ export function PlasticForm({ editing, onSubmit, onCancel }: PlasticFormProps) {
           <input
             type="color"
             value={form.color}
-            onChange={(e) => set("color", e.target.value)}
+            onChange={(event) => set("color", event.target.value)}
             aria-label="Chọn màu tùy chỉnh"
             className="h-8 w-10 cursor-pointer rounded border border-line bg-surface p-1"
           />
