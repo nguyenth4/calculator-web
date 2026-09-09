@@ -66,7 +66,7 @@ export function CalculatorPage() {
       technicalHours,
       technicalRatePerHour: parseNumberInput(form.technicalRate) || 0,
       quantity: parseNumberInput(form.quantity) || 1,
-      otherCost: parseNumberInput(form.otherCost) || 0,
+      otherCost: settings.advancedCostsEnabled ? parseNumberInput(form.otherCost) || 0 : 0,
       riskPercent: parseNumberInput(form.risk) || 0,
       marginPercent: form.margin === "" ? undefined : parseNumberInput(form.margin) || 0,
       profitMethod: settings.profitMethod,
@@ -76,16 +76,15 @@ export function CalculatorPage() {
     form.materials,
     plastics,
     totalWeight,
-    form.hours,
-    form.minutes,
+    hours,
     form.electricity,
-    form.technicalHours,
-    form.technicalMinutes,
+    technicalHours,
     form.technicalRate,
     form.quantity,
     form.otherCost,
     form.risk,
     form.margin,
+    settings.advancedCostsEnabled,
     settings.profitMethod,
   ]);
 
@@ -117,6 +116,7 @@ export function CalculatorPage() {
             value={form}
             onChange={setForm}
             errors={submitted ? errors : {}}
+            advancedCostsEnabled={settings.advancedCostsEnabled}
           />
 
           <div className="mt-3 flex gap-2">

@@ -27,7 +27,6 @@ export interface CalculatorSettings {
   defaultPrinterId: string;
   electricityPricePerKwh: number;
   technicalRatePerHour: number;
-  monthlySalesQuantity: number;
   riskPercent: number;
   profitMethod: ProfitMethod;
   profitPercent: number;

@@ -7,9 +7,9 @@ import { requireNonNegativeNumber, requirePositiveInteger } from "./validation";
 export interface CalculatorFormState {
   materials: MaterialLineFormState[];
   printerId: string;
-  /** Thời gian in, giờ / 1 sản phẩm */
+  /** Thời gian in, giờ cho cả lô */
   hours: string;
-  /** Phần phút của thời gian in / 1 sản phẩm */
+  /** Phần phút của thời gian in cho cả lô */
   minutes: string;
   electricity: string;
   /** Thời gian xử lý kỹ thuật, giờ cho cả lô */
@@ -30,7 +30,7 @@ export interface CalculatorFormState {
 export interface MaterialLineFormState {
   id: string;
   plasticId: string;
-  /** Khối lượng nhựa, gram / 1 sản phẩm */
+  /** Khối lượng nhựa, gram cho cả lô */
   weight: string;
 }
 

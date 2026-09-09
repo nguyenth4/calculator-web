@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useData } from "../../context/DataContext";
 import { formatNumber, formatVND, parseNumberInput } from "../../utils/currency";
+import { parseGcodeMetadata, type GcodeMetadata } from "../../utils/gcode";
 import type { CalculatorFormState, MaterialLineFormState } from "../../utils/calculatorForm";
 import { MaterialIcon, PrinterIcon, EmptyBoxIcon } from "../common/Icons";
 import { FormattedNumberInput } from "../common/FormattedNumberInput";
@@ -10,15 +11,18 @@ interface CalculatorProps {
   value: CalculatorFormState;
   onChange: (next: CalculatorFormState) => void;
   errors: Partial<Record<keyof CalculatorFormState, string>>;
+  advancedCostsEnabled: boolean;
 }
 
 export function Calculator({
   value,
   onChange,
   errors,
+  advancedCostsEnabled,
 }: CalculatorProps) {
   const { plastics, printers } = useData();
   const [touched, setTouched] = useState<Set<string>>(new Set());
+  const [gcodeMessage, setGcodeMessage] = useState("");
 
   const activePlastics = useMemo(
     () => plastics.filter((p) => p.status === "active"),
@@ -53,6 +57,45 @@ export function Calculator({
 
   const removeMaterial = (id: string) => {
     set("materials", value.materials.filter((material) => material.id !== id));
+  };
+
+  const applyGcodeMetadata = (metadata: GcodeMetadata) => {
+    const updates: Partial<CalculatorFormState> = {};
+    if (metadata.printDurationMinutes !== undefined) {
+      updates.hours = String(Math.floor(metadata.printDurationMinutes / 60));
+      updates.minutes = String(metadata.printDurationMinutes % 60);
+    }
+    if (metadata.filamentWeightGrams !== undefined && value.materials.length === 1) {
+      updates.materials = [{
+        ...value.materials[0],
+        weight: String(metadata.filamentWeightGrams),
+      }];
+    }
+    onChange({ ...value, ...updates });
+  };
+
+  const handleGcodeFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const metadata = parseGcodeMetadata(await file.text());
+    const details = [
+      metadata.printDurationMinutes !== undefined && `thời gian in ${Math.floor(metadata.printDurationMinutes / 60)} giờ ${metadata.printDurationMinutes % 60} phút`,
+      metadata.filamentWeightGrams !== undefined && `khối lượng nhựa ${formatNumber(metadata.filamentWeightGrams)} g`,
+    ].filter(Boolean);
+
+    if (details.length === 0) {
+      setGcodeMessage("Không tìm thấy thời gian in hoặc khối lượng nhựa trong metadata của tệp G-code.");
+      return;
+    }
+
+    const canApplyWeight = metadata.filamentWeightGrams === undefined || value.materials.length === 1;
+    const message = `Áp dụng ${details.join(" và ")}?${canApplyWeight ? "" : " Khối lượng nhựa không được tự điền vì biểu mẫu có nhiều dòng vật liệu."}`;
+    if (!window.confirm(message)) return;
+
+    applyGcodeMetadata(metadata);
+    setGcodeMessage(canApplyWeight ? "Đã áp dụng dữ liệu từ G-code." : "Đã áp dụng thời gian in từ G-code.");
   };
 
   const markTouched = (key: string) =>
@@ -98,8 +141,9 @@ export function Calculator({
               )}
             </label>
             <label className="field">
-              <span>Nhập từ G-code <InfoHint text="Chọn tệp G-code để lưu cùng lần tính giá. Thời gian in và vật liệu vẫn được nhập theo dữ liệu slicer." /></span>
-              <input type="file" accept=".gcode,.g" className="input-field gcode-input" />
+              <span>Nhập từ G-code <InfoHint text="Đọc metadata thời gian in và khối lượng nhựa từ tệp G-code của slicer." /></span>
+              <input type="file" accept=".gcode,.g" className="input-field gcode-input" onChange={handleGcodeFile} />
+              {gcodeMessage && <small className="field-hint" role="status">{gcodeMessage}</small>}
               <a className="field-hint gcode-guide" href="https://wiki.bambulab.com/en/software/bambu-studio/quick-start" target="_blank" rel="noreferrer">
                 Cách xuất G-code từ slicer ↗
               </a>
@@ -116,7 +160,7 @@ export function Calculator({
 
         <div className="field-row calculator-print-settings">
           <label className="field">
-            <span>Thời gian in</span>
+            <span>Thời gian in cả lô/khay</span>
             <TimeInputs
               hours={value.hours}
               minutes={value.minutes}
@@ -132,7 +176,7 @@ export function Calculator({
             {shouldShowError("minutes") && errors.minutes && <small className="field-error">{errors.minutes}</small>}
           </label>
           <label className="field">
-            <span>Thời gian xử lý kỹ thuật <InfoHint text="Tổng thời gian thiết kế, setup và hoàn thiện cho cả khay." /></span>
+            <span>Thời gian xử lý kỹ thuật cả lô/khay <InfoHint text="Tổng thời gian thiết kế, setup và hoàn thiện cho cả khay." /></span>
             <TimeInputs
               hours={value.technicalHours}
               minutes={value.technicalMinutes}
@@ -214,9 +258,9 @@ export function Calculator({
                     </select>
                   </label>
                   <label className="field material-weight-field">
-                    <span className="sr-only">Gram</span>
+                    <span className="sr-only">Khối lượng gram cả lô/khay</span>
                     <FormattedNumberInput
-                      placeholder="100"
+                      placeholder="Gram cả lô"
                       value={material.weight}
                       onChange={(weight) => updateMaterial(material.id, { weight })}
                       onBlur={() => markTouched("materials")}
@@ -248,13 +292,13 @@ export function Calculator({
       </div>
 
       {/* Chi phí khác */}
-      <div className="block">
+      {advancedCostsEnabled && <div className="block">
         <div className="block-head">
           <h2 className="section-label">Chi phí khác</h2>
         </div>
 
         <label className="field">
-            <span>Chi phí khác <InfoHint text="Tổng các khoản như đóng gói và phụ kiện cho cả khay; chi phí được chia đều theo số lượng." /></span>
+            <span>Chi phí khác cả lô/khay <InfoHint text="Tổng các khoản như đóng gói và phụ kiện cho cả khay; chi phí được chia đều theo số lượng." /></span>
             <FormattedNumberInput
               value={value.otherCost}
               onChange={(number) => set("otherCost", number)}
@@ -265,7 +309,7 @@ export function Calculator({
               <small className="field-error">{errors.otherCost}</small>
             )}
         </label>
-      </div>
+      </div>}
 
     </div>
   );

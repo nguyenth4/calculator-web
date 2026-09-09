@@ -16,7 +16,6 @@ const DEFAULT_SETTINGS: CalculatorSettings = {
   defaultPrinterId: "printer-a1",
   electricityPricePerKwh: 4000,
   technicalRatePerHour: 10000,
-  monthlySalesQuantity: 200,
   riskPercent: 15,
   profitMethod: "markup",
   profitPercent: 50,
@@ -62,6 +61,28 @@ function loadPrinters(): Printer[] {
   return initialPrinters;
 }
 
+function loadSettings(): CalculatorSettings {
+  const stored = loadFromStorage<unknown>(STORAGE_KEY_SETTINGS, null);
+  if (typeof stored !== "object" || stored === null) return DEFAULT_SETTINGS;
+
+  const value = stored as Partial<CalculatorSettings>;
+  return {
+    defaultPrinterId: typeof value.defaultPrinterId === "string" ? value.defaultPrinterId : DEFAULT_SETTINGS.defaultPrinterId,
+    electricityPricePerKwh: typeof value.electricityPricePerKwh === "number" && value.electricityPricePerKwh >= 0
+      ? value.electricityPricePerKwh : DEFAULT_SETTINGS.electricityPricePerKwh,
+    technicalRatePerHour: typeof value.technicalRatePerHour === "number" && value.technicalRatePerHour >= 0
+      ? value.technicalRatePerHour : DEFAULT_SETTINGS.technicalRatePerHour,
+    riskPercent: typeof value.riskPercent === "number" && value.riskPercent >= 0 && value.riskPercent <= 100
+      ? value.riskPercent : DEFAULT_SETTINGS.riskPercent,
+    profitMethod: value.profitMethod === "margin" || value.profitMethod === "markup"
+      ? value.profitMethod : DEFAULT_SETTINGS.profitMethod,
+    profitPercent: typeof value.profitPercent === "number" && value.profitPercent >= 0
+      ? value.profitPercent : DEFAULT_SETTINGS.profitPercent,
+    advancedCostsEnabled: typeof value.advancedCostsEnabled === "boolean"
+      ? value.advancedCostsEnabled : DEFAULT_SETTINGS.advancedCostsEnabled,
+  };
+}
+
 function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -86,9 +107,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     loadFromStorage(STORAGE_KEY_PLASTICS, initialPlastics),
   );
   const [printers, setPrinters] = useState<Printer[]>(loadPrinters);
-  const [settings, setSettings] = useState<CalculatorSettings>(() =>
-    loadFromStorage(STORAGE_KEY_SETTINGS, DEFAULT_SETTINGS),
-  );
+  const [settings, setSettings] = useState<CalculatorSettings>(loadSettings);
 
   const persistPlastics = (next: Plastic[]) => {
     setPlastics(next);
@@ -126,11 +145,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const removePrinter = (id: string) => {
     persistPrinters(printers.filter((p) => p.id !== id));
+    if (settings.defaultPrinterId === id) {
+      updateSettings({ ...settings, defaultPrinterId: "" });
+    }
   };
 
   const updateSettings = (next: CalculatorSettings) => {
-    setSettings(next);
-    saveToStorage(STORAGE_KEY_SETTINGS, next);
+    const normalized = {
+      ...next,
+      defaultPrinterId: printers.some((printer) => printer.id === next.defaultPrinterId) ? next.defaultPrinterId : "",
+    };
+    setSettings(normalized);
+    saveToStorage(STORAGE_KEY_SETTINGS, normalized);
   };
 
   const value: DataContextValue = {

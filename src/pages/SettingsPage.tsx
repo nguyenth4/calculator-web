@@ -4,6 +4,7 @@ import { useToast } from "../context/ToastContext";
 import type { CalculatorSettings } from "../types";
 import { FormattedNumberInput } from "../components/common/FormattedNumberInput";
 import { parseNumberInput } from "../utils/currency";
+import { hasErrors, requireNonNegativeNumber } from "../utils/validation";
 
 function numberValue(value: number) {
   return value > 0 ? String(value) : "0";
@@ -13,14 +14,28 @@ export function SettingsPage() {
   const { printers, settings, updateSettings } = useData();
   const { showToast } = useToast();
   const [form, setForm] = useState<CalculatorSettings>(settings);
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
   useEffect(() => setForm(settings), [settings]);
 
   const set = <K extends keyof CalculatorSettings>(key: K, value: CalculatorSettings[K]) =>
     setForm((previous) => ({ ...previous, [key]: value }));
 
+  const validate = (): Record<string, string | undefined> => ({
+    electricityPricePerKwh: requireNonNegativeNumber(form.electricityPricePerKwh, "Giá điện"),
+    technicalRatePerHour: requireNonNegativeNumber(form.technicalRatePerHour, "Lương giờ"),
+    riskPercent: form.riskPercent >= 0 && form.riskPercent <= 100
+      ? undefined : "Dự phòng in hỏng phải trong khoảng từ 0 đến 100%.",
+    profitPercent: requireNonNegativeNumber(form.profitPercent, "Tỷ lệ lợi nhuận"),
+    profitMethod: form.profitMethod === "margin" && form.profitPercent >= 100
+      ? "Margin phải nhỏ hơn 100%." : undefined,
+  });
+
   const save = (event: React.FormEvent) => {
     event.preventDefault();
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (hasErrors(nextErrors)) return;
     updateSettings(form);
     showToast("Đã lưu cài đặt tính giá.");
   };
@@ -59,25 +74,19 @@ export function SettingsPage() {
               <FormattedNumberInput
                 value={numberValue(form.electricityPricePerKwh)}
                 onChange={(value) => set("electricityPricePerKwh", parseNumberInput(value) || 0)}
-                className="input-field"
+                className={`input-field ${errors.electricityPricePerKwh ? "input-error" : ""}`}
               />
+              {errors.electricityPricePerKwh && <small className="field-error">{errors.electricityPricePerKwh}</small>}
             </label>
             <label className="field">
               <span>Lương giờ (đ)</span>
               <FormattedNumberInput
                 value={numberValue(form.technicalRatePerHour)}
                 onChange={(value) => set("technicalRatePerHour", parseNumberInput(value) || 0)}
-                className="input-field"
+                className={`input-field ${errors.technicalRatePerHour ? "input-error" : ""}`}
               />
+              {errors.technicalRatePerHour && <small className="field-error">{errors.technicalRatePerHour}</small>}
               <small className="field-hint">Đơn giá mặc định cho xử lý kỹ thuật.</small>
-            </label>
-            <label className="field">
-              <span>Số sản phẩm bán/tháng</span>
-              <FormattedNumberInput
-                value={numberValue(form.monthlySalesQuantity)}
-                onChange={(value) => set("monthlySalesQuantity", parseNumberInput(value) || 0)}
-                className="input-field"
-              />
             </label>
           </div>
         </section>
@@ -105,27 +114,30 @@ export function SettingsPage() {
               <FormattedNumberInput
                 value={numberValue(form.riskPercent)}
                 onChange={(value) => set("riskPercent", parseNumberInput(value) || 0)}
-                className="input-field"
+                className={`input-field ${errors.riskPercent ? "input-error" : ""}`}
               />
+              {errors.riskPercent && <small className="field-error">{errors.riskPercent}</small>}
             </label>
             <label className="field">
               <span>Cách tính lợi nhuận</span>
               <select
-                className="input-field"
+                className={`input-field ${errors.profitMethod ? "input-error" : ""}`}
                 value={form.profitMethod}
                 onChange={(event) => set("profitMethod", event.target.value as CalculatorSettings["profitMethod"])}
               >
                 <option value="markup">Markup - lãi trên giá vốn</option>
                 <option value="margin">Margin - lãi trên giá bán</option>
               </select>
+              {errors.profitMethod && <small className="field-error">{errors.profitMethod}</small>}
             </label>
             <label className="field">
               <span>Tỷ lệ lợi nhuận (%)</span>
               <FormattedNumberInput
                 value={numberValue(form.profitPercent)}
                 onChange={(value) => set("profitPercent", parseNumberInput(value) || 0)}
-                className="input-field"
+                className={`input-field ${errors.profitPercent ? "input-error" : ""}`}
               />
+              {errors.profitPercent && <small className="field-error">{errors.profitPercent}</small>}
             </label>
           </div>
         </section>
