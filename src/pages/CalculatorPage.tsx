@@ -12,15 +12,17 @@ import { parseNumberInput } from "../utils/currency";
 import { hasErrors } from "../utils/validation";
 
 export function CalculatorPage() {
-  const { plastics, printers, settings } = useData();
-  const [form, setForm] = useState<CalculatorFormState>(() => ({
+  const { plastics, printers, settings, calculatorDraft, updateCalculatorDraft } = useData();
+  const createDefaultForm = (): CalculatorFormState => ({
     ...DEFAULT_FORM_STATE,
+    materials: [{ id: crypto.randomUUID(), plasticId: "", weight: "" }],
     printerId: settings.defaultPrinterId,
     electricity: String(settings.electricityPricePerKwh),
     technicalRate: String(settings.technicalRatePerHour),
     risk: String(settings.riskPercent),
     margin: String(settings.profitPercent),
-  }));
+  });
+  const [form, setForm] = useState<CalculatorFormState>(() => calculatorDraft ?? createDefaultForm());
   const [submitted, setSubmitted] = useState(false);
 
   const errors = useMemo(() => validateCalculatorForm(form), [form]);
@@ -89,15 +91,15 @@ export function CalculatorPage() {
   ]);
 
   const handleReset = () => {
-    setForm({
-      ...DEFAULT_FORM_STATE,
-      printerId: settings.defaultPrinterId,
-      electricity: String(settings.electricityPricePerKwh),
-      technicalRate: String(settings.technicalRatePerHour),
-      risk: String(settings.riskPercent),
-      margin: String(settings.profitPercent),
-    });
+    const nextForm = createDefaultForm();
+    setForm(nextForm);
+    updateCalculatorDraft(nextForm);
     setSubmitted(false);
+  };
+
+  const handleFormChange = (nextForm: CalculatorFormState) => {
+    setForm(nextForm);
+    updateCalculatorDraft(nextForm);
   };
 
   const handleCalculate = () => {
@@ -114,7 +116,7 @@ export function CalculatorPage() {
         <div className="col-input">
           <Calculator
             value={form}
-            onChange={setForm}
+            onChange={handleFormChange}
             errors={submitted ? errors : {}}
             advancedCostsEnabled={settings.advancedCostsEnabled}
           />

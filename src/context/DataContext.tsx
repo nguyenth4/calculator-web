@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { initialPlastics, initialPrinters } from "../data/sampleData";
+import type { CalculatorFormState } from "../utils/calculatorForm";
 import type {
   CalculatorSettings,
   Plastic,
@@ -91,6 +92,7 @@ interface DataContextValue {
   plastics: Plastic[];
   printers: Printer[];
   settings: CalculatorSettings;
+  calculatorDraft: CalculatorFormState | null;
   addPlastic: (input: PlasticInput) => Plastic;
   updatePlastic: (id: string, input: PlasticInput) => void;
   removePlastic: (id: string) => void;
@@ -98,6 +100,7 @@ interface DataContextValue {
   updatePrinter: (id: string, input: PrinterInput) => void;
   removePrinter: (id: string) => void;
   updateSettings: (settings: CalculatorSettings) => void;
+  updateCalculatorDraft: (form: CalculatorFormState) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -108,6 +111,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
   const [printers, setPrinters] = useState<Printer[]>(loadPrinters);
   const [settings, setSettings] = useState<CalculatorSettings>(loadSettings);
+  const [calculatorDraft, setCalculatorDraft] = useState<CalculatorFormState | null>(null);
 
   const persistPlastics = (next: Plastic[]) => {
     setPlastics(next);
@@ -159,10 +163,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveToStorage(STORAGE_KEY_SETTINGS, normalized);
   };
 
+  const updateCalculatorDraft = (form: CalculatorFormState) => {
+    setCalculatorDraft(form);
+  };
+
   const value: DataContextValue = {
     plastics,
     printers,
     settings,
+    calculatorDraft,
     addPlastic,
     updatePlastic,
     removePlastic,
@@ -170,6 +179,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     updatePrinter,
     removePrinter,
     updateSettings,
+    updateCalculatorDraft,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
