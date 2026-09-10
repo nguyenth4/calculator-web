@@ -13,20 +13,20 @@ export function MaterialsPage() {
   const [editing, setEditing] = useState<Plastic | null>(null);
   const [deleting, setDeleting] = useState<Plastic | null>(null);
 
-  const handleSubmit = (input: PlasticInput) => {
+  const handleSubmit = async (input: PlasticInput) => {
     if (editing) {
-      updatePlastic(editing.id, input);
+      await updatePlastic(editing.id, input);
       showToast("Đã cập nhật loại nhựa thành công.");
     } else {
-      addPlastic(input);
+      await addPlastic(input);
       showToast("Đã thêm loại nhựa mới thành công.");
     }
     setEditing(null);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleting) return;
-    removePlastic(deleting.id);
+    await removePlastic(deleting.id);
     showToast("Đã xóa loại nhựa.");
     setDeleting(null);
   };

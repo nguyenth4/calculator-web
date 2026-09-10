@@ -1,5 +1,65 @@
 # Handoff tam thoi
 
+## Trang thai dung - Supabase Auth, du lieu va quyen admin
+
+### Muc tieu da thuc hien trong code
+
+- Chuyen dang nhap/dang ky tu localStorage sang Supabase Auth.
+- Luu Nhua, May in, Cai dat va San pham vao Supabase theo tung tai khoan.
+- Them role `admin`/`customer`; chi admin duoc them, sua, xoa thu vien May in.
+- Khach van duoc xem va chon may in de tinh gia.
+
+### Tep quan trong
+
+- `src/lib/supabase.ts`: khoi tao Supabase client tu `VITE_SUPABASE_URL` va `VITE_SUPABASE_ANON_KEY`.
+- `.env.local`: da co URL va anon key cua project Supabase; bi ignore boi Git, khong commit file nay.
+- `src/context/DataContext.tsx`:
+  - Su dung `supabase.auth.getUser()` va `onAuthStateChange` de khoi phuc session.
+  - CRUD Nhua, May in, Cai dat, San pham dung Supabase thay cho localStorage.
+  - Co `isLoading` va `isAdmin` trong context.
+  - Du lieu mau nhua/may in duoc seed mot lan per-user, danh dau bang `profiles.seeded_at`.
+- `src/pages/AuthPage.tsx`: login/register bat dong bo voi Supabase Auth.
+- `src/pages/PrintersPage.tsx` va `src/components/printers/PrinterTable.tsx`:
+  - An form them/sua/xoa voi khach.
+  - Van hien thi danh sach may in cho khach.
+- `supabase/schema.sql`: schema, RLS, ham `public.is_admin()` va policy quyen may in.
+
+### Viec BAT BUOC de kich hoat tren Supabase
+
+Chua co ket noi Postgres/Dashboard du quyen trong phien lam viec, nen schema chua duoc chay tren database tu day. Can thuc hien trong Supabase Dashboard > SQL Editor:
+
+1. Mo `supabase/schema.sql`, copy toan bo va Run.
+2. Tao tai khoan admin qua UI dang ky cua app hoac Supabase Authentication. Khong gui mat khau qua chat.
+3. Chay lenh sau, thay email bang email tai khoan admin:
+
+```sql
+update public.profiles
+set role = 'admin'
+where id = (
+  select id from auth.users where email = 'admin@example.com'
+);
+```
+
+4. Dang xuat/dang nhap lai tai khoan admin de context tai lai role.
+5. Trong Supabase Authentication > URL Configuration, them `http://localhost:5173` va URL Vercel khi deploy.
+
+### Bao mat / luu y
+
+- Khong dua database password, connection string, `service_role` key vao Vite/frontend.
+- `VITE_SUPABASE_ANON_KEY` la public key va chi an toan khi RLS trong `supabase/schema.sql` da duoc chay.
+- RLS buoc admin o database, khong chi dua vao viec an nut tren UI.
+- Policy profile da chan customer tu tu sua role thanh admin.
+- `LocalUser` van con trong `src/types/index.ts` la type cu khong con duoc DataContext su dung; co the xoa trong lan don dep sau.
+
+### Kiem tra gan nhat
+
+- `npm run build`: pass sau khi them quyen admin.
+- `npm run lint`: pass, co 3 warning cu:
+  - `src/context/ToastContext.tsx`: `react(only-export-components)`.
+  - `src/context/DataContext.tsx`: `react(only-export-components)`.
+  - `src/pages/SettingsPage.tsx`: `react(set-state-in-effect)`.
+- Vite bao warning bundle JavaScript tren 500 kB; chua anh huong chuc nang, co the tach route lazy-load neu can toi uu sau.
+
 ## Cap nhat moi nhat (calculator: lam tron, thoi gian ky thuat va giao dien)
 
 ### Muc tieu

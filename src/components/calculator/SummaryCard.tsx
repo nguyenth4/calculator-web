@@ -8,6 +8,9 @@ interface SummaryCardProps {
   profitMethod: "markup" | "margin";
   profitPercent: number;
   materials: MaterialCostDetail[];
+  productName: string;
+  onProductNameChange: (name: string) => void;
+  onSave: () => void;
 }
 
 interface MaterialCostDetail {
@@ -18,7 +21,7 @@ interface MaterialCostDetail {
   cost: number;
 }
 
-export function SummaryCard({ result, weight, hours, profitMethod, profitPercent, materials }: SummaryCardProps) {
+export function SummaryCard({ result, weight, hours, profitMethod, profitPercent, materials, productName, onProductNameChange, onSave }: SummaryCardProps) {
   const hasResult = result !== null && weight > 0 && hours > 0;
   const profitLabel = profitMethod === "margin" ? "margin" : "markup";
   const suggestedPriceFormula = profitMethod === "margin"
@@ -138,6 +141,20 @@ export function SummaryCard({ result, weight, hours, profitMethod, profitPercent
                     </strong>
                   </div>
                 )}
+              </div>
+              <div className="save-product">
+                <label className="field">
+                  <span>Tên sản phẩm</span>
+                  <input
+                    className="input-field"
+                    value={productName}
+                    onChange={(event) => onProductNameChange(event.target.value)}
+                    placeholder="Ví dụ: Móc khóa logo khách"
+                  />
+                </label>
+                <button type="button" className="btn btn-primary" onClick={onSave}>
+                  Lưu sản phẩm
+                </button>
               </div>
             </div>
           </>

@@ -41,6 +41,16 @@ export function PrinterIcon(props: IconProps) {
   );
 }
 
+export function ProductIcon(props: IconProps) {
+  return (
+    <svg width={20} height={20} {...base} {...props}>
+      <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9Z" />
+      <path d="m4 7.5 8 4.5 8-4.5" />
+      <path d="M12 12v9" />
+    </svg>
+  );
+}
+
 export function SettingsIcon(props: IconProps) {
   return (
     <svg width={20} height={20} {...base} {...props}>

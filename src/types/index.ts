@@ -33,5 +33,25 @@ export interface CalculatorSettings {
   advancedCostsEnabled: boolean;
 }
 
+export interface LocalUser {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  createdAt: string;
+}
+
+export interface SavedProduct {
+  id: string;
+  name: string;
+  userId: string;
+  createdAt: string;
+  totalWeight: number;
+  printHours: number;
+  quantity: number;
+  costPerUnit: number;
+  suggestedPrice: number | null;
+}
+
 export type PlasticInput = Omit<Plastic, "id" | "createdAt">;
 export type PrinterInput = Omit<Printer, "id" | "createdAt">;

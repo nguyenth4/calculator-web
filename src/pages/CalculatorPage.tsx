@@ -10,9 +10,11 @@ import {
 } from "../utils/calculatorForm";
 import { parseNumberInput } from "../utils/currency";
 import { hasErrors } from "../utils/validation";
+import { useToast } from "../context/ToastContext";
 
 export function CalculatorPage() {
-  const { plastics, printers, settings, calculatorDraft, updateCalculatorDraft } = useData();
+  const { plastics, printers, settings, calculatorDraft, updateCalculatorDraft, saveProduct } = useData();
+  const { showToast } = useToast();
   const createDefaultForm = (): CalculatorFormState => ({
     ...DEFAULT_FORM_STATE,
     materials: [{ id: crypto.randomUUID(), plasticId: "", weight: "" }],
@@ -24,6 +26,7 @@ export function CalculatorPage() {
   });
   const [form, setForm] = useState<CalculatorFormState>(() => calculatorDraft ?? createDefaultForm());
   const [submitted, setSubmitted] = useState(false);
+  const [productName, setProductName] = useState("");
 
   const errors = useMemo(() => validateCalculatorForm(form), [form]);
   const isValid = !hasErrors(errors);
@@ -106,6 +109,29 @@ export function CalculatorPage() {
     setSubmitted(true);
   };
 
+  const handleSaveProduct = async () => {
+    if (!result) return;
+    const name = productName.trim();
+    if (!name) {
+      showToast("Vui lòng nhập tên sản phẩm trước khi lưu.", "error");
+      return;
+    }
+    const saved = await saveProduct({
+      name,
+      totalWeight,
+      printHours: hours,
+      quantity: result.quantity,
+      costPerUnit: result.totalCostPerUnit,
+      suggestedPrice: result.suggestedPrice,
+    });
+    if (saved.error) {
+      showToast(saved.error, "error");
+      return;
+    }
+    setProductName("");
+    showToast("Đã lưu báo giá vào Sản phẩm.");
+  };
+
   return (
     <div className="calculator-page">
       <div className="section-head">
@@ -145,6 +171,9 @@ export function CalculatorPage() {
             profitMethod={settings.profitMethod}
             profitPercent={parseNumberInput(form.margin) || 0}
             materials={materialDetails}
+            productName={productName}
+            onProductNameChange={setProductName}
+            onSave={handleSaveProduct}
           />
         </div>
       </div>

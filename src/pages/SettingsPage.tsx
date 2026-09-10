@@ -31,12 +31,12 @@ export function SettingsPage() {
       ? "Margin phải nhỏ hơn 100%." : undefined,
   });
 
-  const save = (event: React.FormEvent) => {
+  const save = async (event: React.FormEvent) => {
     event.preventDefault();
     const nextErrors = validate();
     setErrors(nextErrors);
     if (hasErrors(nextErrors)) return;
-    updateSettings(form);
+    await updateSettings(form);
     showToast("Đã lưu cài đặt tính giá.");
   };
 
