@@ -99,4 +99,18 @@ describe("calculatePrintCost", () => {
 
     expect(result.suggestedPrice).toBe(20000);
   });
+
+  it("preserves the entered risk percentage when rounding yields no risk cost", () => {
+    const result = calculatePrintCost({
+      ...baseInput,
+      plasticCosts: [1000],
+      powerKw: 0,
+      purchasePrice: 0,
+      riskPercent: 12,
+      marginPercent: 0,
+    });
+
+    expect(result.riskPercent).toBe(12);
+    expect(result.riskCost).toBe(0);
+  });
 });

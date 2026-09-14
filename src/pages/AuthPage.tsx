@@ -2,12 +2,13 @@ import { useState, type FormEvent } from "react";
 import { useData } from "../context/DataContext";
 
 export function AuthPage() {
-  const { login, register } = useData();
+  const { login, register, loginWithProvider } = useData();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [providerLoading, setProviderLoading] = useState<"google" | "facebook" | null>(null);
 
   const isRegister = mode === "register";
 
@@ -35,6 +36,16 @@ export function AuthPage() {
     setError("");
   };
 
+  const handleProviderLogin = async (provider: "google" | "facebook") => {
+    setError("");
+    setProviderLoading(provider);
+    const result = await loginWithProvider(provider);
+    if (result.error) {
+      setError(result.error);
+      setProviderLoading(null);
+    }
+  };
+
   return (
     <main className="auth-page">
       <section className="auth-panel card animate-fade-in" aria-labelledby="auth-title">
@@ -55,6 +66,29 @@ export function AuthPage() {
           <button type="button" className={mode === "login" ? "active" : ""} onClick={() => switchMode("login")}>Đăng nhập</button>
           <button type="button" className={mode === "register" ? "active" : ""} onClick={() => switchMode("register")}>Đăng ký</button>
         </div>
+
+        <div className="auth-providers">
+          <button
+            type="button"
+            className="auth-provider auth-provider-google"
+            onClick={() => handleProviderLogin("google")}
+            disabled={providerLoading !== null}
+          >
+            <span aria-hidden="true">G</span>
+            {providerLoading === "google" ? "Đang chuyển đến Google..." : "Tiếp tục với Google"}
+          </button>
+          <button
+            type="button"
+            className="auth-provider auth-provider-facebook"
+            onClick={() => handleProviderLogin("facebook")}
+            disabled={providerLoading !== null}
+          >
+            <span aria-hidden="true">f</span>
+            {providerLoading === "facebook" ? "Đang chuyển đến Facebook..." : "Tiếp tục với Facebook"}
+          </button>
+        </div>
+
+        <div className="auth-divider" aria-hidden="true"><span>hoặc</span></div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {isRegister && (

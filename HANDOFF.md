@@ -328,3 +328,127 @@ Da hoan tat toan bo checklist ben duoi. `npm run build` va `npm run lint` deu pa
 Gia mua va tuoi tho cua may Ender 3 V3, Saturn 3 cung nhu mot so gia mua mau hien la gia tri uoc tinh. Can dieu chinh theo du lieu thuc te.
 
 Khong reset hoac ghi de cac thay doi khac cua nguoi dung trong working tree.
+
+## Cap nhat moi nhat (thu vien may in chung + kiem thu)
+
+### Da thuc hien
+
+- `src/context/DataContext.tsx`:
+  - Sua seed du lieu: nhua mau van duoc seed theo tung tai khoan moi.
+  - May in mau khong con bi customer co gang insert va bi RLS chan. Chi admin se seed thu vien may in khi thu vien dang trong; customer sau do chi doc danh sach chung.
+- `supabase/schema.sql`:
+  - `calculator_settings.default_printer_id` co khoa ngoai toi `printers.id`, va tu dong dat `null` khi admin xoa may mac dinh.
+- `src/types/index.ts`: xoa `LocalUser` cu, khong con duoc su dung sau khi chuyen sang Supabase Auth.
+- `src/utils/calculator.test.ts`: them test xac nhan ty le du phong nguoi dung nhap duoc giu nguyen, ke ca khi chi phi du phong lam tron thanh `0d`.
+
+### Kiem tra
+
+- Da chay `npm ci` de cai dependencies tu `package-lock.json`.
+- `npm run build`: pass.
+- `npm test`: pass, 2 file test va 9 test deu pass.
+- `npm run lint`: pass, con 3 warning cu/khong chan build:
+  - `src/context/ToastContext.tsx`: `react(only-export-components)`.
+  - `src/context/DataContext.tsx`: `react(only-export-components)`.
+  - `src/pages/SettingsPage.tsx`: `react(set-state-in-effect)`.
+
+### Viec can chay tren Supabase
+
+- Chay lai toan bo `supabase/schema.sql` trong Supabase Dashboard > SQL Editor de ap dung khoa ngoai moi.
+- Dang nhap lai bang tai khoan admin sau khi chay schema. Neu bang `printers` dang rong, lan tai trang nay se tao bon may mau. Customer chi co the xem va chon cac may do.
+
+## Cap nhat moi nhat (OAuth Google/Facebook + admin)
+
+### Da thuc hien
+
+- `src/pages/AuthPage.tsx` va `src/context/DataContext.tsx`:
+  - Them nut `Tiep tuc voi Google` va `Tiep tuc voi Facebook`.
+  - OAuth dung `supabase.auth.signInWithOAuth`, sau do quay lai URL goc cua app de Supabase khoi phuc session.
+- `supabase/schema.sql`:
+  - Them trigger `on_auth_user_created` tao profile tu dong khi auth user duoc tao.
+  - Email Google `nguyenhoang280004@gmail.com` duoc gan role `admin` o database. Role khong phu thuoc frontend va khong the tu nang quyen qua UI.
+  - Ham `ensure_profile()` bao phu ca user da ton tai truoc khi trigger duoc cai, va gan admin luc tai khoan nay dang nhap.
+  - Ham `mark_profile_seeded()` danh dau profile da duoc seed, thay cho trigger insert truc tiep.
+  - Admin co RLS policy de quan ly toan bo nhua, cai dat, san pham va thu vien may in. Customer chi doc/sua du lieu cua chinh ho, ngoai tru thu vien may in chi duoc doc.
+
+### Cach ket noi Google OAuth — tuan tu tung buoc
+
+#### Buoc 1: Tao Google Cloud Project
+
+1. Vao [Google Cloud Console](https://console.cloud.google.com/).
+2. Click **Select a project** > **New Project**.
+3. Nhap ten project, vi du `calculator-web-auth`, click **Create**.
+
+#### Buoc 2: Tao OAuth 2.0 Client ID
+
+1. Trong Google Cloud Console, moi menu ben trai chon **APIs & Services** > **Credentials**.
+2. Click **Create Credentials** > **OAuth client ID**.
+3. Neu ban can xac minh application, lam theo huong dan cua Google (xac minh email hoac nap tien).
+4. Loai application chon **Web application**.
+5. Nhap ten, vi du `Calculator Web OAuth`.
+6. O phan **Authorized redirect URIs**, them:
+   ```
+   https://<project-ref>.supabase.co/auth/v1/callback
+   ```
+   Thay `<project-ref>` bang ten project Supabase cua ban, co the tim o **Supabase Dashboard > Settings > General > API URL**.
+7. Click **Create**.
+8. Sau khi tao, sao chep **Client ID** va **Client Secret**.
+
+#### Buoc 3: Cau hinh Supabase Authentication — Google
+
+1. Vao [Supabase Dashboard](https://app.supabase.com/) > project cua ban.
+2. Chon **Authentication** > **Providers**.
+3. Tim **Google**, bat che do moi (**Enable**).
+4. Trong **Client ID**, dien ID tu Buoc 2.
+5. Trong **Client Secret**, dien Secret tu Buoc 2.
+6. Chon **Save**.
+
+#### Buoc 4: Cau hinh Supabase Authentication — Facebook (tuong tu)
+
+1. Vao [Meta for Developers](https://developers.facebook.com/), tao app moi.
+2. Vao **Facebook Login** > **Settings**, them **Valid OAuth Redirect URI**:
+   ```
+   https://<project-ref>.supabase.co/auth/v1/callback
+   ```
+3. Sao chep **App ID** va **App Secret**.
+4. Trong Supabase Dashboard > **Authentication > Providers**, bat **Facebook**, dien App ID va App Secret, lưu.
+
+#### Buoc 5: Kich hoat schema va dang nhap admin
+
+1. Trong Supabase Dashboard > **SQL Editor**, chay toan bo `supabase/schema.sql`.
+2. Vao **Authentication > URL Configuration**, them vao **Redirect URLs**:
+   ```
+   http://localhost:5173
+   ```
+   va domain Vercel khi deploy.
+3. Dang nhap bang Google vao `nguyenhoang280004@gmail.com`. Profile se tu dong co role `admin`.
+4. Khac dang nhap bang Google hoac Facebook se duoc gan role `customer`.
+
+#### Buoc 6 (nhu cau): Tao service account va JSON key cho database tu backend
+
+Neu can ket noi database tu mot server backend (khong phai frontend), Tao service account trong Supabase Dashboard > **Settings > Database**, tao key moi, tai ve file JSON. **Khong duoc** dat noi dung file nay trong frontend, Vite `.env`, hoac Git.
+
+### Viec can chay tren Supabase
+
+1. Chay `supabase/schema.sql` de tao schema, RLS, trigger va functions.
+2. Cai Google va Facebook OAuth nhu tren.
+3. Dang nhap Google bang `nguyenhoang280004@gmail.com` de su dung vai admin.
+4. Test dang nhang Facebook de kiem tra flow hoat dong.
+
+### Bao mat / luu y
+
+- `Client Secret` cua Google va `App Secret` cua Facebook chi duoc nhap trong Supabase Dashboard, khong biet noi trong frontend.
+- Khong dua service account JSON, `service_role` key, database connection string vao Vite/frontend.
+- `VITE_SUPABASE_ANON_KEY` la public key va chi an toan khi RLS da duoc chay.
+- RLS buoc admin o database, khong chi dua vao viec an nut tren UI.
+- Role admin duoc xac dinh boi trigger/RPC `SECURITY DEFINER` o database, khong phu thuoc frontend.
+- Khi dat redirect URI cho Google, chi co the them moi URL sau khi OAuth provider da duoc enable trong Supabase. Neu loi redirect, kiem tra chuoi `https://` va ten project cho chinh xac.
+
+### Kiem tra gan nhat
+
+- `npm run build`: pass sau cap nhat gan nhat.
+- `npm run lint`: pass, co 3 warning cu:
+  - `src/context/ToastContext.tsx`: `react(only-export-components)`.
+  - `src/context/DataContext.tsx`: `react(only-export-components)`.
+  - `src/pages/SettingsPage.tsx`: `react(set-state-in-effect)`.
+- `npm test`: pass, 9 tests.
+- Vite bao warning bundle JavaScript tren 500 kB; chua anh huong chuc nang, co the tach route lazy-load neu can toi uu sau.

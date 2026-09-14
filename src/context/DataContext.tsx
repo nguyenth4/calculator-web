@@ -144,6 +144,7 @@ interface DataContextValue {
   updateCalculatorDraft: (form: CalculatorFormState) => void;
   register: (name: string, email: string, password: string) => Promise<{ error?: string }>;
   login: (email: string, password: string) => Promise<{ error?: string }>;
+  loginWithProvider: (provider: "google" | "facebook") => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   saveProduct: (product: Omit<SavedProduct, "id" | "userId" | "createdAt">) => Promise<{ error?: string }>;
   removeProduct: (id: string) => Promise<void>;
@@ -162,6 +163,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadUserData = async (userId: string) => {
+    const { error: profileError } = await supabase.rpc("ensure_profile");
+    if (profileError) return;
+
     const [plasticResponse, printerResponse, productResponse, settingsResponse, profileResponse] = await Promise.all([
       supabase.from("plastics").select("*").order("created_at", { ascending: false }),
       supabase.from("printers").select("*").order("created_at", { ascending: false }),
@@ -187,6 +191,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
         user_id: userId,
         price_per_kg: pricePerKg,
       }));
+      const { data: seededPlastics } = await supabase.from("plastics").insert(plasticSeed).select();
+      if (seededPlastics) setPlastics((seededPlastics as PlasticRow[]).map(toPlastic));
+      await supabase.rpc("mark_profile_seeded");
+    }
+
+    // Printers are a shared library. Only an administrator may create its initial records.
+    if (profile?.role === "admin" && loadedPrinters.length === 0) {
       const printerSeed = initialPrinters.map(({
         id: _id,
         createdAt: _createdAt,
@@ -201,13 +212,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         purchase_price: purchasePrice,
         lifetime_hours: lifetimeHours,
       }));
-      const [seededPlastics, seededPrinters] = await Promise.all([
-        supabase.from("plastics").insert(plasticSeed).select(),
-        supabase.from("printers").insert(printerSeed).select(),
-      ]);
-      if (seededPlastics.data) setPlastics((seededPlastics.data as PlasticRow[]).map(toPlastic));
-      if (seededPrinters.data) setPrinters((seededPrinters.data as PrinterRow[]).map(toPrinter));
-      await supabase.from("profiles").upsert({ id: userId, seeded_at: new Date().toISOString() });
+      const { data: seededPrinters } = await supabase.from("printers").insert(printerSeed).select();
+      if (seededPrinters) setPrinters((seededPrinters as PrinterRow[]).map(toPrinter));
     }
   };
 
@@ -354,6 +360,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return errorMessage(error);
   };
 
+  const loginWithProvider = async (provider: "google" | "facebook") => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin },
+    });
+    return errorMessage(error);
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
   };
@@ -398,6 +412,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     updateCalculatorDraft,
     register,
     login,
+    loginWithProvider,
     logout,
     saveProduct,
     removeProduct,

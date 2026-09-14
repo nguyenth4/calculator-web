@@ -33,14 +33,6 @@ export interface CalculatorSettings {
   advancedCostsEnabled: boolean;
 }
 
-export interface LocalUser {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  createdAt: string;
-}
-
 export interface SavedProduct {
   id: string;
   name: string;
