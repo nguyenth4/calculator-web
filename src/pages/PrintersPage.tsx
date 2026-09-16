@@ -33,7 +33,7 @@ export function PrintersPage() {
   };
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="section-head">
         <h1>Thư viện máy in</h1>
         <a

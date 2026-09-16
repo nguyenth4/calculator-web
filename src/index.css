@@ -44,14 +44,7 @@
 html,
 body {
   overflow-x: hidden;
-}
-
-.auth-page {
-  display: grid;
-  min-height: 100svh;
-  place-items: center;
-  padding: 1.5rem;
-  background: radial-gradient(circle at 20% 5%, #dbeafe 0, transparent 32rem), var(--color-bg);
+  overflow-y: scroll;
 }
 
 .auth-panel {

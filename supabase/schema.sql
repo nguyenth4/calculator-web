@@ -162,7 +162,9 @@ drop policy if exists "Admins manage all products" on public.products;
 create policy "Admins manage all products" on public.products for all using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists "Users manage their printers" on public.printers;
-create policy "Authenticated users view printers" on public.printers for select to authenticated using (true);
+drop policy if exists "Authenticated users view printers" on public.printers;
+drop policy if exists "Anyone can view printers" on public.printers;
+create policy "Anyone can view printers" on public.printers for select using (true);
 create policy "Admins add printers" on public.printers for insert to authenticated with check (public.is_admin());
 create policy "Admins update printers" on public.printers for update to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy "Admins delete printers" on public.printers for delete to authenticated using (public.is_admin());

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Printer, PrinterInput } from "../../types";
 import { initialPrinters } from "../../data/sampleData";
 import { parseNumberInput } from "../../utils/currency";
@@ -46,8 +46,18 @@ function validate(form: FormState) {
 }
 
 export function PrinterForm({ editing, onSubmit, onCancel }: PrinterFormProps) {
-  const [form, setForm] = useState<FormState>(() => toFormState(editing));
+  const [form, setForm] = useState<FormState>(() => {
+    if (editing) return toFormState(editing);
+    const saved = sessionStorage.getItem("printerDraft");
+    return saved ? JSON.parse(saved) : EMPTY_FORM;
+  });
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (!editing) {
+      sessionStorage.setItem("printerDraft", JSON.stringify(form));
+    }
+  }, [form, editing]);
 
   const errors = validate(form);
 
@@ -86,6 +96,7 @@ export function PrinterForm({ editing, onSubmit, onCancel }: PrinterFormProps) {
 
     if (!editing) {
       setForm(EMPTY_FORM);
+      sessionStorage.removeItem("printerDraft");
       setSubmitted(false);
     }
   };

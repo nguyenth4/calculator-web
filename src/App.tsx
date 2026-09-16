@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import { Header } from "./components/layout/Header";
 import { NavTabs } from "./components/layout/NavTabs";
@@ -22,12 +23,13 @@ function App() {
 function AppContent() {
   const { currentUser, isLoading } = useData();
 
-  if (isLoading) return <main className="auth-page"><p>Đang tải dữ liệu...</p></main>;
-  if (!currentUser) return <AuthPage />;
+  const [showAuth, setShowAuth] = useState(false);
+
+  if (isLoading) return <main className="flex min-h-screen items-center justify-center"><p>Đang tải dữ liệu...</p></main>;
 
   return (
     <ToastProvider>
-      <Header />
+      <Header onLoginClick={() => setShowAuth(true)} />
       <NavTabs />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-20 md:px-6 md:py-6 md:pb-6">
         <Routes>
@@ -38,6 +40,11 @@ function AppContent() {
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
+      {!currentUser && showAuth && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <AuthPage onClose={() => setShowAuth(false)} />
+        </div>
+      )}
     </ToastProvider>
   );
 }

@@ -223,8 +223,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (!active) return;
       setCurrentUser(user);
       if (!user) {
-        setPlastics([]);
-        setPrinters([]);
+        setPlastics(initialPlastics);
+        
+        // Fetch public printers for unauthenticated users
+        const { data: publicPrinters } = await supabase
+          .from("printers")
+          .select("*")
+          .order("created_at", { ascending: false });
+          
+        if (publicPrinters && publicPrinters.length > 0) {
+          setPrinters((publicPrinters as PrinterRow[]).map(toPrinter));
+        } else {
+          // Fallback to initialPrinters if database is empty or fails
+          setPrinters(initialPrinters);
+        }
+        
         setProducts([]);
         setSettings(DEFAULT_SETTINGS);
         setIsAdmin(false);
@@ -363,7 +376,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const loginWithProvider = async (provider: "google" | "facebook") => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+      },
     });
     return errorMessage(error);
   };

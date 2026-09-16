@@ -133,7 +133,7 @@ export function CalculatorPage() {
   };
 
   return (
-    <div className="calculator-page">
+    <div className="calculator-page animate-fade-in">
       <div className="section-head">
         <h1>Tính giá nhựa</h1>
       </div>

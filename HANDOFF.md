@@ -60,7 +60,26 @@ where id = (
   - `src/pages/SettingsPage.tsx`: `react(set-state-in-effect)`.
 - Vite bao warning bundle JavaScript tren 500 kB; chua anh huong chuc nang, co the tach route lazy-load neu can toi uu sau.
 
-## Cap nhat moi nhat (calculator: lam tron, thoi gian ky thuat va giao dien)
+## Cap nhat moi nhat (Giao dien dang nhap va cau hinh OAuth)
+
+### Muc tieu
+- Sua loi giao dien popup dang nhap bi tran nen trang/xanh do ke thua CSS cua trang full-page cu.
+- Huong dan nguoi dung cau hinh Google Cloud Console de hien thi ten ung dung thay vi ten mien Supabase.
+
+### Da thuc hien
+- `src/pages/AuthPage.tsx`: Xoa the `<main className="auth-page">` bao quanh popup de loai bo background full-page.
+- `src/index.css`: Xoa class `.auth-page` khong con su dung.
+- `src/App.tsx`: Thay the class `.auth-page` o man hinh loading bang cac class Tailwind (`flex min-h-screen items-center justify-center`).
+- **Huong dan ngoai code**: 
+  - Huong dan nguoi dung doi "App name" trong Google Cloud Console > OAuth consent screen.
+  - Huong dan chuyen trang thai ung dung tu "Testing" sang "In Production" de Google hien thi ten ung dung thay vi ten mien.
+  - Cung cap cac duong dan tam thoi (dung domain cua Supabase) de vuot qua buoc xac minh "App domain" khi Publish app.
+
+### Trang thai hien tai
+- Popup dang nhap hien thi gon gang, nam giua man hinh voi nen toi mo (backdrop-blur).
+- Nguoi dung dang tien hanh Publish app tren Google Cloud Console.
+
+## Cap nhat truoc do (calculator: lam tron, thoi gian ky thuat va giao dien)
 
 ### Muc tieu
 
@@ -99,7 +118,75 @@ where id = (
 - Khong co test framework trong project.
 - Chua co xu ly noi dung file G-code; o chon file hien chi la UI.
 
-## Cap nhat moi nhat (hien thi du phong va cong thuc chi phi)
+## Cap nhat truoc do (dong bo layout va luu nhap lieu)
+
+### Muc tieu
+
+- Dong bo layout giua cac trang (Tinh gia, Nhua, May in, San pham, Cai dat) de khong bi dich chuyen thanh menu khi chuyen trang.
+- Luu lai thong tin dang nhap do (ban nhap) o form them Nhua va May in khi nguoi dung chuyen sang trang khac.
+
+### Da thuc hien
+
+- `src/index.css`:
+  - Them `overflow-y: scroll;` vao the `body` de luon hien thi thanh cuon doc, giup chieu rong trang co dinh, khong bi giat layout khi chuyen giua trang dai va trang ngan.
+- `src/pages/CalculatorPage.tsx`, `src/pages/MaterialsPage.tsx`, `src/pages/PrintersPage.tsx`, `src/pages/ProductsPage.tsx`, `src/pages/SettingsPage.tsx`:
+  - Dong bo the bao boc ngoai cung bang class `animate-fade-in` (hoac `products-page animate-fade-in`, `calculator-page animate-fade-in`) de dam bao cau truc DOM nhat quan.
+- `src/components/materials/PlasticForm.tsx` va `src/components/printers/PrinterForm.tsx`:
+  - Su dung `sessionStorage` de luu trang thai form (`plasticDraft`, `printerDraft`).
+  - Khoi phuc du lieu tu `sessionStorage` khi component mount (neu khong phai dang edit).
+  - Xoa du lieu trong `sessionStorage` khi submit thanh cong.
+
+### Trang thai hien tai
+
+- `npm run build`: pass.
+- Layout da on dinh, khong bi dich chuyen khi chuyen trang.
+- Du lieu nhap do o form Nhua va May in duoc giu lai khi chuyen trang.
+
+## Cap nhat truoc do (hien thi may in cho khach)
+
+### Muc tieu
+
+- Hien thi danh sach may in ma Admin da them cho nguoi dung chua dang nhap (khach), thay vi hien thi du lieu mau gán cứng.
+
+### Da thuc hien
+
+- `supabase/schema.sql`:
+  - Xoa policy cu va them policy moi cho phep tat ca moi nguoi (bao gom ca khach) duoc doc bang `printers`: `create policy "Anyone can view printers" on public.printers for select using (true);`.
+- `src/context/DataContext.tsx`:
+  - Cap nhat logic khi `user` la `null`: goi API Supabase de lay danh sach may in tu bang `printers`.
+  - Neu co loi hoac bang trong, fallback ve `initialPrinters`.
+
+### Trang thai hien tai
+
+- `npm run build`: pass.
+- Khach chua dang nhap da co the thay danh sach may in thuc te cua he thong.
+
+## Cap nhat truoc do (dang nhap Google/Facebook)
+
+### Muc tieu
+
+- Loai bo form dang nhap/dang ky bang email va mat khau.
+- Chi giu lai 2 nut dang nhap bang Google va Facebook.
+
+### Da thuc hien
+
+- `src/context/DataContext.tsx`:
+  - Xoa ham `register` va `login` bang email/password.
+  - Them ham `loginWithProvider` de ho tro OAuth voi Supabase.
+- `src/pages/AuthPage.tsx`:
+  - Xoa toan bo form nhap email, mat khau, ten.
+  - Xoa cac tab chuyen doi giua Dang nhap va Dang ky.
+  - Them 2 nut dang nhap Google va Facebook voi icon tuong ung.
+  - Cap nhat giao dien de hien thi duoi dang modal khi bam nut "Dang nhap" tren Header.
+- `src/App.tsx` va `src/components/layout/Header.tsx`:
+  - Cap nhat de hien thi modal `AuthPage` thay vi chuyen trang.
+
+### Trang thai hien tai
+
+- `npm run build`: pass.
+- Nguoi dung chi co the dang nhap bang Google hoac Facebook.
+
+## Cap nhat truoc do (hien thi du phong va cong thuc chi phi)
 
 ### Muc tieu
 
@@ -123,7 +210,7 @@ where id = (
 - Hai ty le lien nhau, vi du `12%` va `13%`, van co the cho cung mot muc chi phi du phong khi ket qua deu bi lam tron len cung bac `500d`. Day la quy tac lam tron, khong phai loi cap nhat gia tri.
 - `npm run build`: pass sau cac cap nhat tren.
 
-## Cap nhat moi nhat (cong thuc theo lo + trang Cai dat)
+## Cap nhat truoc do (cong thuc theo lo + trang Cai dat)
 
 ### Muc tieu
 
@@ -177,7 +264,7 @@ Voi nhua `30.000d`, dien `5.320d`, khau hao `42.360d`, du phong `15%`, markup `5
 - Can kiem tra neu phat trien tiep: nhan dien va sua nhan giao dien con ghi `/ 1 san pham`; ngu nghia hien tai cua trong luong, thoi gian in va thoi gian xu ly ky thuat la cho ca lo/khay.
 - Luu y: `monthlySalesQuantity` va `advancedCostsEnabled` da duoc luu/chinh sua tren trang Cai dat, nhung hien chua tham gia truc tiep vao cong thuc gia co ban. Cac gia tri con lai da cap mac dinh cho form tinh gia.
 
-## Cap nhat moi nhat (nhua va calculator da nhieu vat lieu)
+## Cap nhat truoc do (nhua va calculator da nhieu vat lieu)
 
 ### Muc tieu
 
@@ -214,7 +301,7 @@ Voi nhua `30.000d`, dien `5.320d`, khau hao `42.360d`, du phong `15%`, markup `5
 - Lint truoc do chi co 2 warning `react(only-export-components)` tai `DataContext.tsx` va `ToastContext.tsx`.
 - `sampleData.ts` van can giu: no cap du lieu mac dinh cho localStorage va preset cho form nhua/may in.
 
-## Cap nhat moi nhat (may in - giao dien don gian + auto-fill)
+## Cap nhat truoc do (may in - giao dien don gian + auto-fill)
 
 ### Muc tieu
 

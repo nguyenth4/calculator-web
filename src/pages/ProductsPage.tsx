@@ -27,7 +27,7 @@ export function ProductsPage() {
   };
 
   return (
-    <div className="products-page">
+    <div className="products-page animate-fade-in">
       <div className="section-head">
         <div>
           <h1>Sản phẩm đã lưu</h1>

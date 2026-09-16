@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Plastic, PlasticInput } from "../../types";
 import { initialPlastics } from "../../data/sampleData";
 import { parseNumberInput } from "../../utils/currency";
@@ -86,10 +86,20 @@ function validate(form: FormState) {
 }
 
 export function PlasticForm({ editing, onSubmit, onCancel }: PlasticFormProps) {
-  const [form, setForm] = useState<FormState>(() => toFormState(editing));
+  const [form, setForm] = useState<FormState>(() => {
+    if (editing) return toFormState(editing);
+    const saved = sessionStorage.getItem("plasticDraft");
+    return saved ? JSON.parse(saved) : EMPTY_FORM;
+  });
   const [submitted, setSubmitted] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [typeSuggestionsOpen, setTypeSuggestionsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!editing) {
+      sessionStorage.setItem("plasticDraft", JSON.stringify(form));
+    }
+  }, [form, editing]);
 
   const errors = validate(form);
 
@@ -135,6 +145,12 @@ export function PlasticForm({ editing, onSubmit, onCancel }: PlasticFormProps) {
       description: editing?.description ?? "",
       status: editing?.status ?? "active",
     });
+
+    if (!editing) {
+      setForm(EMPTY_FORM);
+      sessionStorage.removeItem("plasticDraft");
+      setSubmitted(false);
+    }
   };
 
   return (

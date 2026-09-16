@@ -32,7 +32,7 @@ export function MaterialsPage() {
   };
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="section-head">
         <h1>Thư viện nhựa</h1>
         <a
