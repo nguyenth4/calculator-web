@@ -7,6 +7,7 @@ import { MaterialsPage } from "./pages/MaterialsPage";
 import { PrintersPage } from "./pages/PrintersPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ProductsPage } from "./pages/ProductsPage";
+import { AdminUsersPage } from "./pages/AdminUsersPage";
 import { DataProvider } from "./context/DataContext";
 import { ToastProvider } from "./context/ToastContext";
 import { useData } from "./context/DataContext";
@@ -38,6 +39,7 @@ function AppContent() {
           <Route path="/printers" element={<PrintersPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
         </Routes>
       </main>
       {!currentUser && showAuth && (

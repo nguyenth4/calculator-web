@@ -1,8 +1,9 @@
 import { CalcIcon } from "../common/Icons";
 import { useData } from "../../context/DataContext";
+import { Link } from "react-router-dom";
 
 export function Header({ onLoginClick }: { onLoginClick?: () => void }) {
-  const { currentUser, logout } = useData();
+  const { currentUser, logout, isAdmin } = useData();
   const displayName = currentUser?.user_metadata.name ?? currentUser?.email;
 
   return (
@@ -18,6 +19,11 @@ export function Header({ onLoginClick }: { onLoginClick?: () => void }) {
         <div className="ml-auto flex items-center gap-3">
           {currentUser ? (
             <>
+              {isAdmin && (
+                <Link to="/admin/users" className="text-sm font-medium text-primary hover:underline">
+                  Quản lý người dùng
+                </Link>
+              )}
               <span className="hidden text-sm text-text-secondary sm:inline">{displayName}</span>
               <button type="button" className="btn btn-ghost header-logout" onClick={() => void logout()}>Đăng xuất</button>
             </>

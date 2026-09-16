@@ -143,14 +143,20 @@ alter table public.products enable row level security;
 alter table public.profiles enable row level security;
 
 drop policy if exists "Users manage their profile" on public.profiles;
+drop policy if exists "Users view their profile" on public.profiles;
 create policy "Users view their profile" on public.profiles for select to authenticated using (auth.uid() = id);
+drop policy if exists "Users create customer profile" on public.profiles;
 create policy "Users create customer profile" on public.profiles for insert to authenticated
   with check (auth.uid() = id and role = 'customer');
+drop policy if exists "Customers update their profile" on public.profiles;
 create policy "Customers update their profile" on public.profiles for update to authenticated
   using (auth.uid() = id and role = 'customer')
   with check (auth.uid() = id and role = 'customer');
+drop policy if exists "Users manage their plastics" on public.plastics;
 create policy "Users manage their plastics" on public.plastics for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users manage their calculator settings" on public.calculator_settings;
 create policy "Users manage their calculator settings" on public.calculator_settings for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users manage their products" on public.products;
 create policy "Users manage their products" on public.products for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- The administrator can supervise all customer-owned data; customers remain isolated.
@@ -165,9 +171,63 @@ drop policy if exists "Users manage their printers" on public.printers;
 drop policy if exists "Authenticated users view printers" on public.printers;
 drop policy if exists "Anyone can view printers" on public.printers;
 create policy "Anyone can view printers" on public.printers for select using (true);
+drop policy if exists "Admins add printers" on public.printers;
 create policy "Admins add printers" on public.printers for insert to authenticated with check (public.is_admin());
+drop policy if exists "Admins update printers" on public.printers;
 create policy "Admins update printers" on public.printers for update to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Admins delete printers" on public.printers;
 create policy "Admins delete printers" on public.printers for delete to authenticated using (public.is_admin());
+
+create or replace function public.get_all_users()
+returns table (
+  id uuid,
+  email varchar,
+  name varchar,
+  role text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Access denied';
+  end if;
+
+  return query
+  select 
+    u.id,
+    u.email::varchar,
+    (u.raw_user_meta_data->>'full_name')::varchar as name,
+    p.role,
+    u.created_at
+  from auth.users u
+  join public.profiles p on u.id = p.id
+  order by u.created_at desc;
+end;
+$$;
+
+create or replace function public.update_user_role(target_user_id uuid, new_role text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Access denied';
+  end if;
+
+  if new_role not in ('admin', 'customer') then
+    raise exception 'Invalid role';
+  end if;
+
+  update public.profiles
+  set role = new_role
+  where id = target_user_id;
+end;
+$$;
 
 -- Create the administrator through Authentication first, then assign the role below.
 -- Replace the email address with the account that should administer the printer library.
